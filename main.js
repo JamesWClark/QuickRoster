@@ -12,18 +12,35 @@ $(document).ready(function() {
     var students = {};
     var teachers = {};
     
+    var csvDownloadData = [];
+    
+    var teacherEmails = [];
+    
+    var updateCSVDownloadLink = function(courseID) {
+        // http://stackoverflow.com/questions/17103398/convert-javascript-variable-value-to-csv-file
+        csvDownloadData = csvDownloadData.join('\n');
+        window.URL = window.webkitURL || window.URL;
+        var contentType = 'text/csv';
+        var csvFile = new Blob([csvDownloadData], { type : contentType});
+        $('#download').html('');
+        $('#download').append('<a href="' + window.URL.createObjectURL(csvFile) + '" download="' + courseID + '.csv">Download CSV</a>');
+    };
+    
     window.listStudents = function(id) {
         var course = courses[id];
         var studentList = $('#students');
         studentList.html('');
+        csvDownloadData = [];
         
         var html = '<tr><th>Last Name</th><th>First Name</th><th>Student ID</th><th>Email</th></tr>';
         for(var i = 0; i < course.roster.length; i++) {
             var studentID = parseInt(course.roster[i]);
             var student = students[studentID];
             html += '<tr><td>' + student.lname + '</td><td>' + student.fname + '</td><td>' + student.id + '</td><td>' + student.email + '</td></tr>';
+            csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email);
         }
         studentList.append(html);
+        updateCSVDownloadLink(course.id);
     };
     
     var listCourses = function(email) {
@@ -37,6 +54,7 @@ $(document).ready(function() {
         }
         
         var courseList = $('#courses');
+        courseList.html('');
         for(var i = 0; i < teacher.courses.length; i++) {
             var course = teacher.courses[i];
             courseList.append('<div id="' + course + '" onclick="listStudents(this.id);">' + course + '</div>');
@@ -48,9 +66,6 @@ $(document).ready(function() {
         console.log(students);
         console.log(courses);
         console.log(teachers);
-        
-        var email = 'flyngar@rockhursths.edu';
-        listCourses(email);
     };
     
     var updateProgress = function() {
@@ -95,6 +110,7 @@ $(document).ready(function() {
                 };
                 if(!teachers.hasOwnProperty(teacherID)) {
                     teachers[teacherID] = teacher;
+                    teacherEmails.push(teacherEmail);
                 }
             }
         }
@@ -193,7 +209,24 @@ $(document).ready(function() {
             next();
         }
     };
-        
+    
+    var filterByStartingSubstring = function(substring) {
+        return function(element) {
+            return element.indexOf(substring) === 0;
+        };
+    };
+    
+    $('#search').keyup(function() {
+        var substring = $(this).val();
+        var filter = teacherEmails.filter(filterByStartingSubstring(substring));
+        if(filter.length === 1) {
+            var email = filter[0];
+            console.log(email);
+            $('#teacher').text(email);
+            listCourses(email);
+        }
+    });
+    
     // get the data from the files
     $.get('data/teachers_by_email.csv', function(data) {
         tbye = data;
