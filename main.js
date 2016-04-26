@@ -1,9 +1,9 @@
 $(document).ready(function() {
     
-    var tbyc, tbye, sbyc, sbye;
+    var tdata, sdata; // teacher and student data
     
-    var totalFiles = 4;
-    var parsedFiles = 0;
+    var totalFiles = 2;
+    var loadedFiles = 0;
     
     var progress = 0; // progress on the progress bar
     var progressBar = $('#progress-loading-files'); // the progress bar
@@ -60,7 +60,88 @@ $(document).ready(function() {
             courseList.append('<div id="' + course + '" onclick="listStudents(this.id);">' + course + '</div>');
         }
     };
-        
+    
+    var courseMapKey = function(id, term) {
+        return id.trim().replace(' - ', '_').trim() + 't' + term.trim();
+    };
+    
+    var parseTeachersTSV = function(data) {
+        console.log(courses);
+        console.log('parsing teachers.tsv');
+        data = data.split('\n');
+        for(var i = 1; i < data.length; i++) { // from i = 1 ignores header row
+            if(data[i].length > 0) {
+                var tsv = data[i].split('\t');
+
+                var teacher = {
+                    lname:    tsv[0],
+                    fname:    tsv[1],
+                    fullName: tsv[2],
+                    email:    tsv[3],
+                    id:       tsv[4]
+                };
+
+                var course = {
+                    id:   tsv[5],
+                    name: tsv[6],
+                    term: tsv[7]
+                };
+                
+                if(!teachers.hasOwnProperty(teacher.id.toString())) {
+                    teachers[teacher.id.toString()] = teacher;
+                    teacherEmails.push(teacher.email);
+                }
+                
+                course = courses[courseMapKey(course.id, course.term)];
+                course.teacher = teacher.id;
+            }
+        }
+    };
+    
+    var parseStudentsTSV = function(data) {
+        console.log('parsing students.tsv');
+        data = data.split('\n');
+        for(var i = 1; i < data.length; i++) { // from i = 1 ignores header row
+            if(data[i].length > 0) {
+                var tsv = data[i].split('\t');
+                
+                var student = {
+                    lname: tsv[0],
+                    fname: tsv[1],
+                    email: tsv[2],
+                    id:    tsv[3],
+                    grade: tsv[4]
+                };
+                
+                var course = {
+                    id:    tsv[5],
+                    term:  tsv[6],
+                    name:  tsv[7],
+                    teacher: -1
+                };
+                
+                // if student doesn't exist yet, create it
+                if(!students.hasOwnProperty(student.id.toString())) {
+                    students[student.id.toString()] = student;
+                }
+                
+                // if course doesn't exist yet, create it
+                if(!courses.hasOwnProperty(courseMapKey(course.id, course.term))) {
+                    course.roster = []
+                    course.roster.push(student.id.toString());
+                    courses[courseMapKey(course.id, course.term)] = course;
+                } else {
+                    // course already exists, add student to course
+                    course = courses[courseMapKey(course.id, course.term)];
+                    if(course.roster.indexOf(student.id.toString()) === -1) {
+                        course.roster.push(student.id.toString());
+                    }
+                }
+            }
+        }
+    };
+    
+    // when loading and parsing is complete
     var next = function() {
         console.log('next');
         console.log(students);
@@ -68,154 +149,49 @@ $(document).ready(function() {
         console.log(teachers);
     };
     
+    // update the progress bar
     var updateProgress = function() {
-        progress += 12.5;
+        progress += 100 / (totalFiles * 2); // loading + parsing = 2
         progressBar.attr('value', progress);
     };
     
-    var courseKey = function(id, term) {
-        return id.replace(' - ', '_').trim() + 't' + term;
-    };
-    
-    var parseTeachersByCourse = function(data) {
-        console.log('tbyc');
-        data = data.split('\n');
-        for(var i = 1; i < data.length; i++) {
-            if(data[i].length > 0) {
-                var csv = data[i].split(',');
-                var courseID = csv[5];
-                var courseTerm = csv[4];
-                var teacherID = csv[2];
-                courseID = courseKey(courseID, courseTerm);
-                
-                if(teachers[teacherID].courses.indexOf(courseID) === -1) {
-                    teachers[teacherID].courses.push(courseID);
-                }
-            }
-        }
-    };
-    
-    var parseTeachersByEmail = function(data) {
-        console.log('tbye');
-        data = data.split('\n');
-        for(var i = 1; i < data.length; i++) {
-            if(data[i].length > 0) {
-                var csv = data[i].split(',');
-                var teacherID = csv[0];
-                var teacherEmail = csv[4].toLowerCase();
-                var teacher = {
-                    id: teacherID,
-                    email: teacherEmail,
-                    courses: []
-                };
-                if(!teachers.hasOwnProperty(teacherID)) {
-                    teachers[teacherID] = teacher;
-                    teacherEmails.push(teacherEmail);
-                }
-            }
-        }
-    };
-    
-    var parseStudentsByEmail = function(data) {
-        console.log('sbye');
-        data = data.split('\n');
-        for(var i = 1; i < data.length; i++) {
-            if(data[i].length > 0) {
-                var csv = data[i].split(',');
-                var student = {
-                    lname: csv[0],
-                    fname: csv[1],
-                    grade: csv[2],
-                    id: csv[5],
-                    email: csv[8]
-                };
-                students[student.id] = student;
-            }
-        }
-    };
-    
-    var parseStudentsByCourse = function(data) {
-        console.log('sbyc');
-        data = data.split('\n');
-        for(var i = 1; i < data.length; i++) {
-            if(data[i].length > 0) {
-                var csv = data[i].split(',');
-                var studentID = csv[8];
-                var course;
-                var courseID = csv[0];
-                var courseTerm = csv[1];
-                var courseName = csv[4];
-                courseID = courseKey(courseID, courseTerm);
-                
-                if(!courses.hasOwnProperty(courseID)) {
-                    course = {
-                        id: courseID,
-                        name: courseName,
-                        roster: []
-                    };
-                    courses[courseID] = course;
-                } else {
-                    course = courses[courseID];
-                }
-                if(course.roster.indexOf(studentID) === -1) {
-                    course.roster.push(studentID);
-                }
-            }
-        }
-    };
-    
+    // track data file progress
     var handleParse = function() {
-        parsedFiles++;
+        loadedFiles++;
         updateProgress();
         
-        if(parsedFiles === totalFiles) {
+        if(loadedFiles === totalFiles) {
             
-            try {
-                parseStudentsByCourse(sbyc);
-                updateProgress();
-            } catch(ex) {
-                if(ex instanceof TypeError) {
-                    console.log('parseStudentsByCourse typeerror');
-                }
-            }
+            parseStudentsTSV(sdata);
+            updateProgress();
             
-            try {
-                parseStudentsByEmail(sbye);
-                updateProgress();
-            } catch(ex) {
-                if(ex instanceof TypeError) {
-                    console.log('parseStudentsByEmail typeerror');
-                }
-            }
-            
-            try {
-                parseTeachersByEmail(tbye);
-                updateProgress();
-            } catch(ex) {
-                if(ex instanceof TypeError) {
-                    console.log('parseTeachersByEmail typeerror');
-                }
-            }
-            
-            try {
-                parseTeachersByCourse(tbyc);
-                updateProgress();
-            } catch(ex) {
-                if(ex instanceof TypeError) {
-                    console.log('parseTeachersByCourse typeerror');
-                }
-            }
+            parseTeachersTSV(tdata);
+            updateProgress();
             
             next();
         }
     };
+
+    // get teacher data from tsv file
+    $.get('data/teachers.tsv', function(data) {
+        tdata = data;
+        handleParse();
+    });
+
+    // get student data from tsv file
+    $.get('data/students.tsv', function(data) {
+        sdata = data;
+        handleParse();
+    });
     
+    // filter search results
     var filterByStartingSubstring = function(substring) {
         return function(element) {
             return element.indexOf(substring) === 0;
         };
     };
     
+    // update search results by filter with text input
     $('#search').keyup(function() {
         var substring = $(this).val();
         var filter = teacherEmails.filter(filterByStartingSubstring(substring));
@@ -225,26 +201,5 @@ $(document).ready(function() {
             $('#teacher').text(email);
             listCourses(email);
         }
-    });
-    
-    // get the data from the files
-    $.get('data/teachers_by_email.csv', function(data) {
-        tbye = data;
-        handleParse();
-    });
-    
-    $.get('data/teachers_by_class.csv', function(data) {
-        tbyc = data;
-        handleParse();
-    });
-
-    $.get('data/students_by_email.csv', function(data) {
-        sbye = data;
-        handleParse();
-    });
-
-    $.get('data/students_by_class.csv', function(data) {
-        sbyc = data;
-        handleParse();
     });
 });
