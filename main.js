@@ -44,6 +44,7 @@ $(document).ready(function() {
     };
     
     var listCourses = function(email) {
+        console.log('listing courses...');
         var teacher;
         for(var prop in teachers) {
             if(teachers.hasOwnProperty(prop)) {
@@ -53,12 +54,20 @@ $(document).ready(function() {
             }
         }
         
+        console.log('teacher = ', teacher);
+        console.log('courses = ', teacher.courses);
+
+        
         var courseList = $('#courses');
+        var html = '<tr><th>Course ID</th><th>Course Name</th><th>Term</th></tr>';
         courseList.html('');
+        
         for(var i = 0; i < teacher.courses.length; i++) {
-            var course = teacher.courses[i];
-            courseList.append('<div id="' + course + '" onclick="listStudents(this.id);">' + course + '</div>');
+            var course = courses[teacher.courses[i]];
+            html += '<tr id="' + courseMapKey(course.id, course.term) + '" onclick="listStudents(this.id);"><td>' + course.id + '</td><td>' + course.name + '</td><td>' + course.term + '</td></tr>';
         }
+        
+        courseList.append(html);
     };
     
     var courseMapKey = function(id, term) {
@@ -66,7 +75,6 @@ $(document).ready(function() {
     };
     
     var parseTeachersTSV = function(data) {
-        console.log(courses);
         console.log('parsing teachers.tsv');
         data = data.split('\n');
         for(var i = 1; i < data.length; i++) { // from i = 1 ignores header row
@@ -88,12 +96,20 @@ $(document).ready(function() {
                 };
                 
                 if(!teachers.hasOwnProperty(teacher.id.toString())) {
+                    teacher.courses = [];
+                    teacher.courses.push(courseMapKey(course.id, course.term));
                     teachers[teacher.id.toString()] = teacher;
                     teacherEmails.push(teacher.email);
+                } else {
+                    teacher = teachers[teacher.id.toString()];
+                    teacher.courses.push(courseMapKey(course.id, course.term));                    
                 }
                 
-                course = courses[courseMapKey(course.id, course.term)];
-                course.teacher = teacher.id;
+                if(!courses.hasOwnProperty(courseMapKey(course.id, course.term))) {
+                    console.log("error? course didn't exist when parsing teacher", course.id);
+                    course = courses[courseMapKey(course.id, course.term)];
+                    course.teacher = teacher.id;
+                }
             }
         }
     };
@@ -174,12 +190,14 @@ $(document).ready(function() {
 
     // get teacher data from tsv file
     $.get('data/teachers.tsv', function(data) {
+        console.log('fetching teacher data');
         tdata = data;
         handleParse();
     });
 
     // get student data from tsv file
     $.get('data/students.tsv', function(data) {
+        console.log('fetching student data');
         sdata = data;
         handleParse();
     });
@@ -197,7 +215,7 @@ $(document).ready(function() {
         var filter = teacherEmails.filter(filterByStartingSubstring(substring));
         if(filter.length === 1) {
             var email = filter[0];
-            console.log(email);
+            console.log('filtered an email: ' + email);
             $('#teacher').text(email);
             listCourses(email);
         }
