@@ -278,7 +278,7 @@ $(document).ready(function() {
 
         // update search results by filter with text input
         $('#search').keyup(function() {
-            var substring = $(this).val();
+            var substring = $(this).val().toLowerCase();
             var filter = teacherEmails.filter(filterByStartingSubstring(substring));
             if(substring.length === 0) {
                 reset();
