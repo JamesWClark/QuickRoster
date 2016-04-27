@@ -16,14 +16,16 @@ $(document).ready(function() {
     
     var teacherEmails = [];
     
-    var updateCSVDownloadLink = function(courseID) {
+    var updateCSVDownloadLink = function(course) {
         // http://stackoverflow.com/questions/17103398/convert-javascript-variable-value-to-csv-file
         csvDownloadData = csvDownloadData.join('\n');
-        window.URL = window.webkitURL || window.URL;
         var contentType = 'text/csv';
         var csvFile = new Blob([csvDownloadData], { type : contentType});
-        $('#download').html('');
-        $('#download').append('<a href="' + window.URL.createObjectURL(csvFile) + '" download="' + courseID + '.csv">Download CSV</a>');
+        var csvFileName =  course.id + ' ' + course.name + '.csv';
+        var btnDownload = $('#download');
+        btnDownload.attr('href', window.URL.createObjectURL(csvFile));
+        btnDownload.attr('download', csvFileName);
+        console.log('a file is ready for download: ' + csvFileName);
     };
     
     window.listStudents = function(id) {
@@ -42,7 +44,10 @@ $(document).ready(function() {
             csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email);
         }
         studentList.append(html);
-        updateCSVDownloadLink(course.id);
+        updateCSVDownloadLink(course);
+        $('#list-students').show();
+        $('#list-courses').hide();
+        $('#courseName').text(course.name);
     };
     
     var listCourses = function(email) {
@@ -59,6 +64,9 @@ $(document).ready(function() {
         console.log('teacher = ', teacher);
         console.log('courses = ', teacher.courses);
 
+        $('#list-courses').show();
+        $('#teacherName').text(teacher.fname + ' ' + teacher.lname);
+        $('#teacherEmail').text(teacher.email);
         
         var courseList = $('#courses');
         var html = '<tr><th>Course ID</th><th>Course Name</th><th>Term</th></tr>';
@@ -198,6 +206,19 @@ $(document).ready(function() {
             next();
         }
     };
+    
+    var reset = function() {
+        $('#searchMessage').text('');
+        $('#searchMessage').hide();
+        $('#teacherName').text('');
+        $('#teacherEmail').text('');
+        $('#courseName').text('');
+        $('#courses').html('');
+        $('#students').html('');
+        $('#list-courses').hide();
+        $('#list-students').hide();
+        $('#view-container').hide();
+    };
 
     // get teacher data from tsv file
     $.get('data/teachers.tsv', function(data) {
@@ -224,14 +245,27 @@ $(document).ready(function() {
     $('#search').keyup(function() {
         var substring = $(this).val();
         var filter = teacherEmails.filter(filterByStartingSubstring(substring));
-        if(filter.length === 1) {
+        if(substring.length === 0) {
+            reset();
+        } else if(filter.length === 0) {
+            reset();
+            $('#searchMessage').show();
+            $('#searchMessage').text('No results...');
+        } else if(filter.length > 1) {
+            $('#searchMessage').show();
+        } else if(filter.length === 1) {
+            reset();
             var email = filter[0];
             console.log('filtered an email: ' + email);
-            $('#teacher').text(email);
             $('#view-container').show();
             listCourses(email);
         } else {
             $('#view-container').hide();
         }
+    });
+    
+    $('#btnBackToCourses').click(function() {
+        $('#list-students').hide();
+        $('#list-courses').show();
     });
 });

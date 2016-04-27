@@ -3,14 +3,13 @@
 
 <head>
   <title>Quick Roster</title>
-  <meta name="google-signin-client_id" content="274287641493-tiijets0k3qilu8efphl6mqfqgnput8e.apps.googleusercontent.com">
   <link href="https://rawgit.com/JamesWClark/RadCSS/master/rad.css" rel="stylesheet" />
   <link href="main.css" rel="stylesheet" />
 </head>
 
 <body>
 
-  <div class="flex center middle">
+  <div class="center">
 
     <div id="main" class="inline">
       <div class="" id="progress-container">
@@ -21,15 +20,26 @@
       </div>
 
       <div id="search-container">
-        <input id="search" placeholder="Type your email to search...">
+        <input id="search" placeholder="Start by typing your email address...">
+        <br>
+        <p id="searchMessage"></p>
       </div>
       
       <div id="view-container">
-        <div id="teacher"></div>
+        <h1 id="teacherName"></h1>
+        <div id="teacherEmail"></div>
         <hr>
-        <table id="courses"></table>
-        <div id="download"></div>
-        <table id="students"></table>
+        <div id="list-courses">
+          <table id="courses"></table>
+        </div>
+        <div id="list-students">
+          <div class="flex middle">
+            <a id="btnBackToCourses" class="button">&lt; Back</a>
+            <a id="download" class="button">Download CSV</a>
+            <span id="courseName" class="inline"></span>
+          </div>
+          <table id="students"></table>
+        </div>
       </div>
 
     </div>
