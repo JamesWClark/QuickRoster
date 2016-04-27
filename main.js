@@ -32,9 +32,11 @@ $(document).ready(function() {
         studentList.html('');
         csvDownloadData = [];
         
+        console.log('listing students from courses[' + id + '] = ' + course.roster);
+        
         var html = '<tr><th>Last Name</th><th>First Name</th><th>Student ID</th><th>Email</th></tr>';
         for(var i = 0; i < course.roster.length; i++) {
-            var studentID = parseInt(course.roster[i]);
+            var studentID = course.roster[i];
             var student = students[studentID];
             html += '<tr><td>' + student.lname + '</td><td>' + student.fname + '</td><td>' + student.id + '</td><td>' + student.email + '</td></tr>';
             csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email);
