@@ -68,6 +68,7 @@ $(document).ready(function() {
             var studentList = $('#students');
             studentList.html('');
             csvDownloadData = [];
+            csvDownloadData.push('Last Name,First Name,Student ID,Email');
 
             console.log('listing students from courses[' + id + '] = ' + course.roster);
 
