@@ -7,3 +7,35 @@
 #progress-loading-files {
   width: 100%;
 }
+
+#main {
+  width: 100%;
+  max-width: 650px;
+  margin-top: 10%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cover {
+  width: 600px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: -300px;
+  margin-left: -300px;
+}
+#search-container {
+  display: none;
+}
+
+#view-container {
+  display: none;
+}
+
+#search {
+  padding: 17px;
+  font-size: 20px;
+  border-radius: 7px;
+  border: solid navy 1px;
+  width: 100%;
+}

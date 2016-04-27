@@ -101,16 +101,21 @@ $(document).ready(function() {
                     teacher.courses = [];
                     teacher.courses.push(courseMapKey(course.id, course.term));
                     teachers[teacher.id.toString()] = teacher;
-                    teacherEmails.push(teacher.email);
                 } else {
                     teacher = teachers[teacher.id.toString()];
-                    teacher.courses.push(courseMapKey(course.id, course.term));                    
+                    if(teacher.courses.indexOf(courseMapKey(course.id, course.term)) === -1) {
+                        teacher.courses.push(courseMapKey(course.id, course.term));
+                    }
                 }
                 
                 if(!courses.hasOwnProperty(courseMapKey(course.id, course.term))) {
                     console.log("error? course didn't exist when parsing teacher", course.id);
                     course = courses[courseMapKey(course.id, course.term)];
                     course.teacher = teacher.id;
+                }
+                
+                if(teacherEmails.indexOf(teacher.email) === -1) {
+                    teacherEmails.push(teacher.email);                    
                 }
             }
         }
@@ -171,6 +176,10 @@ $(document).ready(function() {
     var updateProgress = function() {
         progress += 100 / (totalFiles * 2); // loading + parsing = 2
         progressBar.attr('value', progress);
+        if(progress === 100) {
+            $('#progress-container').hide();
+            $('#search-container').show();
+        }
     };
     
     // track data file progress
@@ -219,7 +228,10 @@ $(document).ready(function() {
             var email = filter[0];
             console.log('filtered an email: ' + email);
             $('#teacher').text(email);
+            $('#view-container').show();
             listCourses(email);
+        } else {
+            $('#view-container').hide();
         }
     });
 });
