@@ -182,6 +182,7 @@ $(document).ready(function() {
                         term: tsv[7]
                     };
 
+                    // if teacher doesn't exist, create him
                     if(!teachers.hasOwnProperty(teacher.id.toString())) {
                         teacher.courses = [];
                         teacher.courses.push(courseMapKey(course.id, course.term));
@@ -193,12 +194,14 @@ $(document).ready(function() {
                         }
                     }
 
+                    // if this teacher's course does not yet exist, that's a potential problem... it would seem the teacher has a course without students in it
                     if(!courses.hasOwnProperty(courseMapKey(course.id, course.term))) {
-                        log("error? course didn't exist when parsing teacher with course.id = ", course.id);
+                        log("course didn't exist when parsing teacher = " + teacher.email + " and course.id = " + course.id + " named " + course.name);
                         course = courses[courseMapKey(course.id, course.term)];
-                        log('course = ', course);
-                        if(course)
+                        // prevents null pointer exception in case the course didn't exist previously in students.tsv
+                        if(course) {
                             course.teacher = teacher.id;
+                        }
                     }
 
                     if(teacherEmails.indexOf(teacher.email) === -1) {
@@ -254,9 +257,9 @@ $(document).ready(function() {
         // when loading and parsing is complete
         var next = function() {
             log('next');
-            log('students = ', students);
-            log('courses = ', courses);
-            log('teachers = ', teachers);
+            //log('students = ', students);
+            //log('courses = ', courses);
+            //log('teachers = ', teachers);
         };
 
         // update the progress bar
