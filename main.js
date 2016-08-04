@@ -1,7 +1,47 @@
+/* QuickRoster for Rockhurst High School
+ * Written by JW Clark, April 2016
+ *
+ * Exports saved in Education Edge
+ * Download the exports as teachers.xlsx and students.xlsx
+ * Save the .xlxs files to .tsv format and upload to the following directory
+ *
+ * https://www.rockhursths.edu/file/QuickRoster/data/teachers.tsv
+ * https://www.rockhursths.edu/file/QuickRoster/data/students.tsv
+ */
+
 $(document).ready(function() {
     
+    // hides the JavaScript required warning
     $('#nojs').hide();
     
+    // log to prevent circular reference
+    var log = function(msg, obj) {
+        console.log('\n');
+        if(obj) {
+            try {
+                console.log(msg + JSON.stringify(obj));
+            } catch(err) {
+                var simpleObject = {};
+                for (var prop in obj ){
+                    if (!obj.hasOwnProperty(prop)){
+                        continue;
+                    }
+                    if (typeof(obj[prop]) == 'object'){
+                        continue;
+                    }
+                    if (typeof(obj[prop]) == 'function'){
+                        continue;
+                    }
+                    simpleObject[prop] = obj[prop];
+                }
+                console.log('c-' + msg + JSON.stringify(simpleObject)); // returns cleaned up JSON
+            }        
+        } else {
+            console.log(msg);
+        }
+    };
+    
+    // detects Internet Explorer
     var detectIE = function() {
         //http://stackoverflow.com/questions/19999388/check-if-user-is-using-ie-with-jquery
         
@@ -30,9 +70,10 @@ $(document).ready(function() {
         return false;
     }
     
+    // app doesn't run on Internet Explorer
     if(detectIE()) {
-        $('#msfail').show();
         $('#msfail').text('This app supports Chrome, Firefox, and Safari.');
+        $('#msfail').show();
     } else {
         $('#main').show();
         var tdata, sdata; // teacher and student data
@@ -60,7 +101,7 @@ $(document).ready(function() {
             var btnDownload = $('#download');
             btnDownload.attr('href', window.URL.createObjectURL(csvFile));
             btnDownload.attr('download', csvFileName);
-            console.log('a file is ready for download: ' + csvFileName);
+            log('a file is ready for download: ', csvFileName);
         };
 
         window.listStudents = function(id) {
@@ -70,7 +111,7 @@ $(document).ready(function() {
             csvDownloadData = [];
             csvDownloadData.push('Last Name,First Name,Student ID,Email');
 
-            console.log('listing students from courses[' + id + '] = ' + course.roster);
+            log('listing students from courses[' + id + '] = ', course.roster);
 
             var html = '<tr><th>Last Name</th><th>First Name</th><th>Student ID</th><th>Email</th></tr>';
             for(var i = 0; i < course.roster.length; i++) {
@@ -87,7 +128,7 @@ $(document).ready(function() {
         };
 
         var listCourses = function(email) {
-            console.log('listing courses...');
+            log('listing courses...');
             var teacher;
             for(var prop in teachers) {
                 if(teachers.hasOwnProperty(prop)) {
@@ -97,8 +138,8 @@ $(document).ready(function() {
                 }
             }
 
-            console.log('teacher = ', teacher);
-            console.log('courses = ', teacher.courses);
+            log('teacher = ', teacher);
+            log('courses = ', teacher.courses);
 
             $('#list-courses').show();
             $('#teacherName').text(teacher.fname + ' ' + teacher.lname);
@@ -121,7 +162,7 @@ $(document).ready(function() {
         };
 
         var parseTeachersTSV = function(data) {
-            console.log('parsing teachers.tsv');
+            log('parsing teachers.tsv');
             data = data.split('\n');
             for(var i = 1; i < data.length; i++) { // from i = 1 ignores header row
                 if(data[i].length > 0) {
@@ -153,9 +194,11 @@ $(document).ready(function() {
                     }
 
                     if(!courses.hasOwnProperty(courseMapKey(course.id, course.term))) {
-                        console.log("error? course didn't exist when parsing teacher", course.id);
+                        log("error? course didn't exist when parsing teacher with course.id = ", course.id);
                         course = courses[courseMapKey(course.id, course.term)];
-                        course.teacher = teacher.id;
+                        log('course = ', course);
+                        if(course)
+                            course.teacher = teacher.id;
                     }
 
                     if(teacherEmails.indexOf(teacher.email) === -1) {
@@ -166,7 +209,7 @@ $(document).ready(function() {
         };
 
         var parseStudentsTSV = function(data) {
-            console.log('parsing students.tsv');
+            log('parsing students.tsv');
             data = data.split('\n');
             for(var i = 1; i < data.length; i++) { // from i = 1 ignores header row
                 if(data[i].length > 0) {
@@ -210,10 +253,10 @@ $(document).ready(function() {
 
         // when loading and parsing is complete
         var next = function() {
-            console.log('next');
-            console.log(students);
-            console.log(courses);
-            console.log(teachers);
+            log('next');
+            log('students = ', students);
+            log('courses = ', courses);
+            log('teachers = ', teachers);
         };
 
         // update the progress bar
@@ -258,14 +301,14 @@ $(document).ready(function() {
 
         // get teacher data from tsv file
         $.get('data/teachers.tsv', function(data) {
-            console.log('fetching teacher data');
+            log('fetching teacher data');
             tdata = data;
             handleParse();
         });
 
         // get student data from tsv file
         $.get('data/students.tsv', function(data) {
-            console.log('fetching student data');
+            log('fetching student data');
             sdata = data;
             handleParse();
         });
@@ -292,7 +335,7 @@ $(document).ready(function() {
             } else if(filter.length === 1) {
                 reset();
                 var email = filter[0];
-                console.log('filtered an email: ' + email);
+                log('filtered an email = ', email);
                 $('#view-container').show();
                 listCourses(email);
             } else {
