@@ -264,9 +264,11 @@ $(document).ready(function() {
         // when loading and parsing is complete
         var next = function() {
             log('next');
-            log('students = ', students);
-            log('courses = ', courses);
-            log('teachers = ', teachers);
+            
+            // use for debugging only - this logs a huge string slowing the app greatly
+            //log('students = ', students);
+            //log('courses = ', courses);
+            //log('teachers = ', teachers);
         };
 
         // update the progress bar
