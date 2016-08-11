@@ -11,10 +11,10 @@
 
 $(document).ready(function() {
     
-    // hides the JavaScript required warning
+    // hides the "JavaScript is required" warning
     $('#nojs').hide();
     
-    // log to prevent circular reference
+    // utility: log to prevent circular reference
     var log = function(msg, obj) {
         console.log('\n');
         if(obj) {
@@ -88,10 +88,11 @@ $(document).ready(function() {
         var students = {};
         var teachers = {};
 
-        var csvDownloadData = [];
-
         var teacherEmails = [];
 
+        var csvDownloadData = []; // an array to store the current data view as comma separated values file
+
+        // updates the CSV Download link to match the current data view 
         var updateCSVDownloadLink = function(course) {
             // http://stackoverflow.com/questions/17103398/convert-javascript-variable-value-to-csv-file
             csvDownloadData = csvDownloadData.join('\n');
@@ -104,6 +105,7 @@ $(document).ready(function() {
             log('a file is ready for download: ', csvFileName);
         };
 
+        // lists students after a teacher's course is clicked
         window.listStudents = function(id) {
             var course = courses[id];
             var studentList = $('#students');
@@ -127,9 +129,13 @@ $(document).ready(function() {
             $('#courseName').text(course.name);
         };
 
+        // lists courses by teacher after search
         var listCourses = function(email) {
-            log('listing courses...');
-            var teacher;
+            log('listing courses for teacher with email = ', email);
+            
+            var teacher; // a variable to hold this found teacher
+            
+            // linear search for a teacher that matches the above email parameter
             for(var prop in teachers) {
                 if(teachers.hasOwnProperty(prop)) {
                     if(teachers[prop].email === email) {
@@ -157,6 +163,7 @@ $(document).ready(function() {
             courseList.append(html);
         };
 
+        // return the key that looks up a course from the courses object
         var courseMapKey = function(id, term) {
             return id.trim().replace(' - ', '_').trim() + 't' + term.trim();
         };
@@ -257,9 +264,9 @@ $(document).ready(function() {
         // when loading and parsing is complete
         var next = function() {
             log('next');
-            //log('students = ', students);
-            //log('courses = ', courses);
-            //log('teachers = ', teachers);
+            log('students = ', students);
+            log('courses = ', courses);
+            log('teachers = ', teachers);
         };
 
         // update the progress bar
