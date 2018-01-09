@@ -155,10 +155,18 @@ $(document).ready(function() {
             var courseList = $('#courses');
             var html = '<tr><th>Course ID</th><th>Course Name</th><th>Term</th></tr>';
             courseList.html('');
-
+            
+            log('loop through courses = ', teacher.courses);
             for(var i = 0; i < teacher.courses.length; i++) {
-                var course = courses[teacher.courses[i]];
-                html += '<tr id="' + courseMapKey(course.id, course.term) + '" onclick="listStudents(this.id);"><td>' + course.id + '</td><td>' + course.name + '</td><td>' + course.term + '</td></tr>';
+                var courseid = teacher.courses[i];
+                
+                if(courses.hasOwnProperty(courseid)) {
+                    var course = courses[teacher.courses[i]];
+                    log('course = ', course);
+                    html += '<tr id="' + courseMapKey(course.id, course.term) + '" onclick="listStudents(this.id);"><td>' + course.id + '</td><td>' + course.name + '</td><td>' + course.term + '</td></tr>';
+                } else {
+                    log('courses has no property = ', courseid);
+                }
             }
 
             courseList.append(html);
