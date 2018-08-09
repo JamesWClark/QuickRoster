@@ -168,14 +168,46 @@ $(document).ready(function() {
             var html = '<tr><th>Course ID</th><th>Course Name</th><th>Term</th></tr>';
             courseList.html('');
             
-            log('loop through courses = ', teacher.courses);
+            // load this teacher's courses
+            var tempCourseList = [];
             for(var i = 0; i < teacher.courses.length; i++) {
                 var courseid = teacher.courses[i];
-                
                 if(courses.hasOwnProperty(courseid)) {
-                    var course = courses[teacher.courses[i]];
+                    tempCourseList.push(courses[courseid]);
+                }
+            }
+            
+            // sort the courses
+            var sortByTermThenName = function(a, b) {
+                // https://stackoverflow.com/a/9175302/1161948
+                
+                // by term
+                if(a.term > b.term) {
+                    return 1;
+                } else if(a.term < b.term) {
+                    return -1;
+                }
+                
+                // then by name
+                if(a.name > b.name) {
+                    return 1;
+                } else if(a.name < b.name) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            };
+            
+            // display the courses
+            tempCourseList.sort(sortByTermThenName);
+            
+            log('loop through courses = ', tempCourseList);
+            for(var i = 0; i < tempCourseList.length; i++) {
+                if(courses.hasOwnProperty(courseid)) {
+                    var course = tempCourseList[i];
+                    var courseKey = courseMapKey(course.name, course.id, course.term);
                     log('course = ', course);
-                    html += '<tr id="' + courseMapKey(course.name, course.id, course.term) + '" onclick="listStudents(this.id);"><td>' + course.id + '</td><td>' + course.name + '</td><td>' + course.term + '</td></tr>';
+                    html += '<tr id="' + courseKey + '" onclick="listStudents(this.id);"><td>' + course.id + '</td><td>' + course.name + '</td><td>' + course.term + '</td></tr>';
                 } else {
                     log('courses has no property = ', courseid);
                 }
@@ -186,7 +218,6 @@ $(document).ready(function() {
 
         // return the key that looks up a course from the courses object
         var courseMapKey = function(name, id, term) {
-            
             return name.trim() + id.trim() + term.trim();
         };
 
