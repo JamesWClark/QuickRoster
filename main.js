@@ -11,6 +11,23 @@
 
 $(document).ready(function() {
     
+    // useless progress bar
+    var progress = 0; // progress on the progress bar
+    var progressBar = $('#progress-loading-files'); // the progress bar
+    var finished = false;
+    
+    setTimeout(function() {
+        if(!finished) {
+            $('#timeout-loading-message').text('This might take a little longer the first time...');
+        }
+    }, 3000);
+    
+    setTimeout(function() {
+        if(!finished) {
+            $('#timeout-loading-message').html('Hmm.. should be done by now. Something is wrong! <a href="mailto:jwclark@rockhursths.edu?subject=Problem with QuickRoster&body=Please take a look at QuickRoster. I could not get past loading.">Email J.W.</a>');        
+        }
+    }, 8000)
+    
     // hides the "JavaScript is required" warning
     $('#nojs').hide();
     
@@ -76,10 +93,6 @@ $(document).ready(function() {
         $('#msfail').show();
     } else {
         $('#main').show();
-
-        // useless progress bar
-        var progress = 0; // progress on the progress bar
-        var progressBar = $('#progress-loading-files'); // the progress bar
 
         // data objects
         var courses = {};
@@ -257,15 +270,16 @@ $(document).ready(function() {
                 if(teacherEmails.indexOf(teacher.email) === -1) {
                     teacherEmails.push(teacher.email);                    
                 }
+                
+                updateProgress(i, data.length);
             }
-            updateProgress();
+            finished = true;
+            log('finished parsing');
         };
 
         // update the progress bar
-        var updateProgress = function() {
-            progress += 100;
-            progressBar.attr('value', progress);
-            if(progress === 100) {
+        var updateProgress = function(i, len) {
+            if(i === len - 1) {
                 $('#progress-container').hide();
                 $('#search-container').show();
             }
