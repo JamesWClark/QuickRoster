@@ -124,7 +124,7 @@ $(document).ready(function() {
             var studentList = $('#students');
             studentList.html('');
             csvDownloadData = [];
-            csvDownloadData.push('Last Name,First Name,Student ID,Email');
+            csvDownloadData.push('Last Name,First Name,Student ID,Email,Course');
 
             log('listing students from courses[' + id + '] = ', course.roster);
 
@@ -133,7 +133,7 @@ $(document).ready(function() {
                 var studentID = course.roster[i];
                 var student = students[studentID];
                 html += '<tr><td>' + student.lname + '</td><td>' + student.fname + '</td><td>' + student.id + '</td><td>' + student.email + '</td></tr>';
-                csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email);
+                csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email + "," + course.id + " " + course.name);
             }
             studentList.append(html);
             updateCSVDownloadLink(course);
@@ -198,10 +198,11 @@ $(document).ready(function() {
                 }
             };
             
-            // display the courses
             tempCourseList.sort(sortByTermThenName);
             
             log('loop through courses = ', tempCourseList);
+            
+            // display the courses
             for(var i = 0; i < tempCourseList.length; i++) {
                 if(courses.hasOwnProperty(courseid)) {
                     var course = tempCourseList[i];
