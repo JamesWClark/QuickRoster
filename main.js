@@ -127,11 +127,25 @@ $(document).ready(function() {
             csvDownloadData.push('Last Name,First Name,Student ID,Email,Course');
 
             log('listing students from courses[' + id + '] = ', course.roster);
-
-            var html = '<tr><th>Last Name</th><th>First Name</th><th>Student ID</th><th>Email</th></tr>';
+            
+            var tempStudents = [];
+            
+            // put all the student objects in an array
             for(var i = 0; i < course.roster.length; i++) {
                 var studentID = course.roster[i];
                 var student = students[studentID];
+                tempStudents.push(student);
+            }
+            
+            var sortStudentsByLastName = function(a, b) {
+                return a.lname > b.lname ? 1 : -1;
+            }
+            
+            tempStudents.sort(sortStudentsByLastName);
+
+            var html = '<tr><th>Last Name</th><th>First Name</th><th>Student ID</th><th>Email</th></tr>';
+            for(var i = 0; i < tempStudents.length; i++) {
+                var student = tempStudents[i];
                 html += '<tr><td>' + student.lname + '</td><td>' + student.fname + '</td><td>' + student.id + '</td><td>' + student.email + '</td></tr>';
                 csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email + "," + course.id + " " + course.name);
             }
@@ -139,7 +153,7 @@ $(document).ready(function() {
             updateCSVDownloadLink(course);
             $('#list-students').show();
             $('#list-courses').hide();
-            $('#courseName').text(course.name);
+            $('#courseName').text(course.name + ", " + course.id);
         };
 
         // lists courses by teacher after search
