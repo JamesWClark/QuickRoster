@@ -76,20 +76,20 @@ $(document).ready(function() {
         $('#msfail').show();
     } else {
         $('#main').show();
-        var tdata, sdata; // teacher and student data
 
-        var totalFiles = 2;
-        var loadedFiles = 0;
-
+        // useless progress bar
         var progress = 0; // progress on the progress bar
         var progressBar = $('#progress-loading-files'); // the progress bar
 
+        // data objects
         var courses = {};
         var students = {};
         var teachers = {};
 
+        // a list of teachers by email
         var teacherEmails = [];
 
+        // this is what the user downloads
         var csvDownloadData = []; // an array to store the current data view as comma separated values file
 
         // updates the CSV Download link to match the current data view 
@@ -162,7 +162,7 @@ $(document).ready(function() {
                 if(courses.hasOwnProperty(courseid)) {
                     var course = courses[teacher.courses[i]];
                     log('course = ', course);
-                    html += '<tr id="' + courseMapKey(course.id, course.term) + '" onclick="listStudents(this.id);"><td>' + course.id + '</td><td>' + course.name + '</td><td>' + course.term + '</td></tr>';
+                    html += '<tr id="' + courseMapKey(course.name, course.id, course.term) + '" onclick="listStudents(this.id);"><td>' + course.id + '</td><td>' + course.name + '</td><td>' + course.term + '</td></tr>';
                 } else {
                     log('courses has no property = ', courseid);
                 }
@@ -172,116 +172,98 @@ $(document).ready(function() {
         };
 
         // return the key that looks up a course from the courses object
-        var courseMapKey = function(id, term) {
-            return id.trim().replace(' - ', '_').trim() + 't' + term.trim();
-        };
-
-        var parseTeachersTSV = function(data) {
-            log('parsing teachers.tsv');
-            data = data.split('\n');
-            for(var i = 1; i < data.length; i++) { // from i = 1 ignores header row
-                if(data[i].length > 0) {
-                    var tsv = data[i].split('\t');
-
-                    var teacher = {
-                        lname:    tsv[0],
-                        fname:    tsv[1],
-                        fullName: tsv[2],
-                        email:    tsv[3],
-                        id:       tsv[4]
-                    };
-
-                    var course = {
-                        id:   tsv[5],
-                        name: tsv[6],
-                        term: tsv[7]
-                    };
-
-                    // if teacher doesn't exist, create him
-                    if(!teachers.hasOwnProperty(teacher.id.toString())) {
-                        teacher.courses = [];
-                        teacher.courses.push(courseMapKey(course.id, course.term));
-                        teachers[teacher.id.toString()] = teacher;
-                    } else {
-                        teacher = teachers[teacher.id.toString()];
-                        if(teacher.courses.indexOf(courseMapKey(course.id, course.term)) === -1) {
-                            teacher.courses.push(courseMapKey(course.id, course.term));
-                        }
-                    }
-
-                    // if this teacher's course does not yet exist, that's a potential problem... it would seem the teacher has a course without students in it
-                    if(!courses.hasOwnProperty(courseMapKey(course.id, course.term))) {
-                        log("course didn't exist when parsing teacher = " + teacher.email + " and course.id = " + course.id + " named " + course.name);
-                        course = courses[courseMapKey(course.id, course.term)];
-                        // prevents null pointer exception in case the course didn't exist previously in students.tsv
-                        if(course) {
-                            course.teacher = teacher.id;
-                        }
-                    }
-
-                    if(teacherEmails.indexOf(teacher.email) === -1) {
-                        teacherEmails.push(teacher.email);                    
-                    }
-                }
-            }
-        };
-
-        var parseStudentsTSV = function(data) {
-            log('parsing students.tsv');
-            data = data.split('\n');
-            for(var i = 1; i < data.length; i++) { // from i = 1 ignores header row
-                if(data[i].length > 0) {
-                    var tsv = data[i].split('\t');
-
-                    var student = {
-                        lname: tsv[0],
-                        fname: tsv[1],
-                        email: tsv[2],
-                        id:    tsv[3],
-                        grade: tsv[4]
-                    };
-
-                    var course = {
-                        id:    tsv[5],
-                        term:  tsv[6],
-                        name:  tsv[7],
-                        teacher: -1
-                    };
-
-                    // if student doesn't exist yet, create it
-                    if(!students.hasOwnProperty(student.id.toString())) {
-                        students[student.id.toString()] = student;
-                    }
-
-                    // if course doesn't exist yet, create it
-                    if(!courses.hasOwnProperty(courseMapKey(course.id, course.term))) {
-                        course.roster = []
-                        course.roster.push(student.id.toString());
-                        courses[courseMapKey(course.id, course.term)] = course;
-                    } else {
-                        // course already exists, add student to course
-                        course = courses[courseMapKey(course.id, course.term)];
-                        if(course.roster.indexOf(student.id.toString()) === -1) {
-                            course.roster.push(student.id.toString());
-                        }
-                    }
-                }
-            }
-        };
-
-        // when loading and parsing is complete
-        var next = function() {
-            log('next');
+        var courseMapKey = function(name, id, term) {
             
-            // use for debugging only - this logs a huge string slowing the app greatly
-            //log('students = ', students);
-            //log('courses = ', courses);
-            //log('teachers = ', teachers);
+            return name.trim() + id.trim() + term.trim();
+        };
+
+        // parse roster.tsv into data objects
+        var parseTSV = function(data) {
+            
+            data = data.split('\n');
+            
+            log('parsing roster.tsv with ' + data.length + ' records');
+            
+            // loop through the tsv file
+            for(var i = 1; i < data.length; i++) { // from i = 1, ignores header row
+                var tsv = data[i].split('\t');
+
+                var teacher = {
+                    fname: tsv[9],
+                    lname: tsv[10],
+                    email: tsv[11]
+                }
+
+                var course = {
+                    name: tsv[5],
+                    id:   tsv[6],
+                    term: tsv[8]
+                }
+
+                var student = {
+                    fname: tsv[0],
+                    lname: tsv[1],
+                    grade: tsv[2],
+                    id:    tsv[3],
+                    email: tsv[4]
+                }
+
+                var courseKey = courseMapKey(course.name, course.id, course.term);
+
+                // if student doesn't exist yet, create it
+                if(!students.hasOwnProperty(student.email)) {
+                    students[student.email] = student;
+                }
+
+                // if course doesn't exist yet, create it
+                if(!courses.hasOwnProperty(courseKey)) {
+                    course.roster = [];
+                    course.roster.push(student.email);
+                    courses[courseKey] = course;
+                } else {
+                    // course already exists, add student to course
+                    course = courses[courseKey];
+                    if(course.roster.indexOf(student.email) === -1) {
+                        // student isn't in the roster yet, add them
+                        course.roster.push(student.email);
+                    }
+                }
+
+                // if teacher hasn't joined the teachers collection, add them
+                if(!teachers.hasOwnProperty(teacher.email)) {
+                    // also initialize a courses array for them
+                    teacher.courses = [];
+                    teacher.courses.push(courseKey); // and add this course to that array
+                    teachers[teacher.email] = teacher;
+                } else {
+                    // teacher is in the collection
+                    teacher = teachers[teacher.email];
+                    if(teacher.courses.indexOf(courseKey) === -1) {
+                        // but they don't have this class yet, so add it to their list
+                        teacher.courses.push(courseKey);
+                    }
+                }
+
+                // if this teacher's course does not yet exist, that's a potential problem... it would seem the teacher has a course without students in it
+                if(!courses.hasOwnProperty(courseKey)) {
+                    log('course didnt exist when parsing teacher = ' + teacher.email + '  and course.id = ' + course.id + " named " + course.name);
+                    course = courses[courseKey];
+                    if(course) {
+                        course.teacher = teacher.email;
+                    }
+                }
+
+                // teacher isn't in the email list yet
+                if(teacherEmails.indexOf(teacher.email) === -1) {
+                    teacherEmails.push(teacher.email);                    
+                }
+            }
+            updateProgress();
         };
 
         // update the progress bar
         var updateProgress = function() {
-            progress += 100 / (totalFiles * 2); // loading + parsing = 2
+            progress += 100;
             progressBar.attr('value', progress);
             if(progress === 100) {
                 $('#progress-container').hide();
@@ -289,23 +271,7 @@ $(document).ready(function() {
             }
         };
 
-        // track data file progress
-        var handleParse = function() {
-            loadedFiles++;
-            updateProgress();
-
-            if(loadedFiles === totalFiles) {
-
-                parseStudentsTSV(sdata);
-                updateProgress();
-
-                parseTeachersTSV(tdata);
-                updateProgress();
-
-                next();
-            }
-        };
-
+        // reset the gui
         var reset = function() {
             $('#searchMessage').text('');
             $('#searchMessage').hide();
@@ -318,20 +284,6 @@ $(document).ready(function() {
             $('#list-students').hide();
             $('#view-container').hide();
         };
-
-        // get teacher data from tsv file
-        $.get('data/teachers.tsv', function(data) {
-            log('fetching teacher data');
-            tdata = data;
-            handleParse();
-        });
-
-        // get student data from tsv file
-        $.get('data/students.tsv', function(data) {
-            log('fetching student data');
-            sdata = data;
-            handleParse();
-        });
 
         // filter search results
         var filterByStartingSubstring = function(substring) {
@@ -363,9 +315,16 @@ $(document).ready(function() {
             }
         });
 
+        // click event - list courses by teacher email
         $('#btnBackToCourses').click(function() {
             $('#list-students').hide();
             $('#list-courses').show();
+        });
+    
+        // http request - get teacher data from tsv file
+        $.get('data/roster.tsv', function(data) {
+            log('fetching roster data');
+            parseTSV(data);
         });
     }
 });
