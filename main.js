@@ -4,6 +4,7 @@
  * Exports saved in Education Edge
  * Download the exports as teachers.xlsx and students.xlsx
  * Save the .xlxs files to .tsv format and upload to the following directory
+ * (I do this by CTRL+A select all from Excel and paste into Notepad++ before saving as .tsv format)
  *
  * https://www.rockhursths.edu/file/QuickRoster/data/teachers.tsv
  * https://www.rockhursths.edu/file/QuickRoster/data/students.tsv
