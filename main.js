@@ -250,7 +250,7 @@ $(document).ready(function() {
                 var teacher = {
                     fname: tsv[9],
                     lname: tsv[10],
-                    email: tsv[11]
+                    email: tsv[11].toLowerCase()
                 }
 
                 var course = {
@@ -264,7 +264,7 @@ $(document).ready(function() {
                     lname: tsv[1],
                     grade: tsv[2],
                     id:    tsv[3],
-                    email: tsv[4]
+                    email: tsv[4].toLowerCase()
                 }
 
                 var courseKey = courseMapKey(course.name, course.id, course.term);
