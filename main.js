@@ -259,11 +259,12 @@ $(document).ready(function() {
                     term: tsv[8]
                 }
 
+                var idLength = 5;
                 var student = {
                     fname: tsv[0],
                     lname: tsv[1],
                     grade: tsv[2],
-                    id:    tsv[3],
+                    id:    tsv[3].length > idLength ? tsv[3].substring(tsv[3].length-idLength) : tsv[3],
                     email: tsv[4].toLowerCase()
                 }
 
