@@ -4,7 +4,7 @@
  *
  * QuickRoster export saved in advaned lists on myschoolapp.rockhursths.edu
  * LifeTouch image data saved in LifeTouch portal
- *
+ * portal.lifetouch.com > image & data management > select all > available action > download > select format > global > txt tab delimited > rename extension to .tsv
  */
 
 $(document).ready(function() {
@@ -14,7 +14,7 @@ $(document).ready(function() {
     var progressBar = $('#progress-loading-files'); // the progress bar
     var finished = false;
     
-    var lifeTouch = true;
+    var lifeTouch = false;
     var lifeTouchFinished = false;
     
     setTimeout(function() {
@@ -114,6 +114,7 @@ $(document).ready(function() {
                 var studentID = course.roster[i];
                 var student = students[studentID];
                 tempStudents.push(student);
+                console.log(student);
             }
             
             var sortStudentsByLastName = function(a, b) {
@@ -122,10 +123,24 @@ $(document).ready(function() {
             
             tempStudents.sort(sortStudentsByLastName);
 
-            var html = '<tr><th>Last Name</th><th>First Name</th><th>Student ID</th><th>Email</th></tr>';
+            var html = '<tr>'
+            
+            if(lifeTouch) {
+                html += '<th>Photo</th>'
+            }
+            
+            html += '<th>Last Name</th><th>First Name</th><th>Student ID</th><th>Email</th></tr>';
             for(var i = 0; i < tempStudents.length; i++) {
                 var student = tempStudents[i];
-                html += '<tr><td>' + student.lname + '</td><td>' + student.fname + '</td><td>' + student.id + '</td><td>' + student.email + '</td></tr>';
+                html += '<tr>';
+                if(lifeTouch) {
+                    if(student.img) {
+                        html += '<td><img class="lt" src="data/images/' + student.img + '"></td>';
+                    } else {
+                        html += '<td>?</td>';
+                    }
+                }
+                html += '<td>' + student.lname + '</td><td>' + student.fname + '</td><td>' + student.id + '</td><td>' + student.email + '</td></tr>';
                 csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email + "," + course.id + " " + course.name);
             }
             studentList.append(html);
@@ -223,12 +238,16 @@ $(document).ready(function() {
             log('parsing roster.tsv with ' + data.length + ' records');
             
             // loop through the tsv file
+            // burn headers, start at 1
             for(var i = 1; i < data.length; i++) { // from i = 1, ignores header row
                 var tsv = data[i].split('\t');
+
+                var idLength = 4;
 
                 var teacher = {
                     fname: tsv[9],
                     lname: tsv[10],
+                    id:    tsv[12].length > idLength ? tsv[12].substring(tsv[12].length-idLength) : tsv[12],
                     email: tsv[11].toLowerCase()
                 }
 
@@ -238,7 +257,6 @@ $(document).ready(function() {
                     term: tsv[8]
                 }
 
-                var idLength = 5;
                 var student = {
                     fname: tsv[0],
                     lname: tsv[1],
@@ -250,33 +268,33 @@ $(document).ready(function() {
                 var courseKey = courseMapKey(course.name, course.id, course.term);
 
                 // if student doesn't exist yet, create it
-                if(!students.hasOwnProperty(student.email)) {
-                    students[student.email] = student;
+                if(!students.hasOwnProperty(student.id)) {
+                    students[student.id] = student;
                 }
 
                 // if course doesn't exist yet, create it
                 if(!courses.hasOwnProperty(courseKey)) {
                     course.roster = [];
-                    course.roster.push(student.email);
+                    course.roster.push(student.id);
                     courses[courseKey] = course;
                 } else {
                     // course already exists, add student to course
                     course = courses[courseKey];
-                    if(course.roster.indexOf(student.email) === -1) {
+                    if(course.roster.indexOf(student.id) === -1) {
                         // student isn't in the roster yet, add them
-                        course.roster.push(student.email);
+                        course.roster.push(student.id);
                     }
                 }
 
                 // if teacher hasn't joined the teachers collection, add them
-                if(!teachers.hasOwnProperty(teacher.email)) {
+                if(!teachers.hasOwnProperty(teacher.id)) {
                     // also initialize a courses array for them
                     teacher.courses = [];
                     teacher.courses.push(courseKey); // and add this course to that array
-                    teachers[teacher.email] = teacher;
+                    teachers[teacher.id] = teacher;
                 } else {
                     // teacher is in the collection
-                    teacher = teachers[teacher.email];
+                    teacher = teachers[teacher.id];
                     if(teacher.courses.indexOf(courseKey) === -1) {
                         // but they don't have this class yet, so add it to their list
                         teacher.courses.push(courseKey);
@@ -288,7 +306,7 @@ $(document).ready(function() {
                     log('course didnt exist when parsing teacher = ' + teacher.email + '  and course.id = ' + course.id + " named " + course.name);
                     course = courses[courseKey];
                     if(course) {
-                        course.teacher = teacher.email;
+                        course.teacher = teacher.id;
                     }
                 }
 
@@ -299,12 +317,53 @@ $(document).ready(function() {
                 
                 updateProgress(i, data.length);
             }
+
+            if(lifeTouch) {
+	            $.get('data/lifetouch.tsv', function(data) {
+	                log('fetching lifetouch data');
+	                parseLifeTouchTSV(data);
+	            });
+	        }
+
             finished = true;
+
             log('finished parsing');
         };
 
+        // parse lifetouch.tsv into data objects
         var parseLifeTouchTSV = function(data) {
             
+            // eg data:
+            // https://docs.google.com/spreadsheets/d/1xbw_Q_Htet8S0fz4k-saGEiZzu3HH66WJqejoeVGBvA/edit#gid=711274252
+            
+            data = data.trim().split('\n');
+            
+            log('parsing lifetouch.tsv with ' + data.length + ' records');
+            
+            // loop through the tsv file
+            // burn headers, start at 1
+            for(var i = 1; i < data.length; i++) {
+                var tsv = data[i].split('\t');
+                
+                var person = {
+                    fname: tsv[9].replace(/"/g, ''),
+                    lname: tsv[12].replace(/"/g, ''),
+                    grade: tsv[10].replace(/"/g, ''),
+                    id:    tsv[0].replace(/"/g, ''),
+                    img:   tsv[1].replace(/"/g, '')
+                }
+                
+                if(students.hasOwnProperty(person.id)) {
+                    students[person.id].img = person.img;
+                    students[person.id].grade = person.grade;
+                } else if(teachers.hasOwnProperty(person.id)) {
+                    teachers[person.id].img = person.img;
+                }
+            }
+            
+            lifeTouchFinished = true;
+            
+            log('finished parsing lifetouch');
         };
         
         // update the progress bar
@@ -370,12 +429,5 @@ $(document).ready(function() {
             log('fetching roster data');
             parseTSV(data);
         });
-        
-        if(lifeTouch) {
-            $.get('data/lifetouch.tsv', function(data) {
-                log('fetching lifetouch data');
-                parseLifeTouchTSV(data);
-            });
-        }
     }
 });
