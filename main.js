@@ -1,12 +1,10 @@
 /* QuickRoster for Rockhurst High School
- * Written by JW Clark, April 2016
+ * Originally written by JW Clark, April 2016
+ * Maintenance tracked on Github: https://github.com/JamesWClark/QuickRoster
  *
- * Exports saved in Education Edge
- * Download the exports as teachers.xlsx and students.xlsx
- * Save the .xlxs files to .tsv format and upload to the following directory
+ * QuickRoster export saved in advaned lists on myschoolapp.rockhursths.edu
+ * LifeTouch image data saved in LifeTouch portal
  *
- * https://www.rockhursths.edu/file/QuickRoster/data/teachers.tsv
- * https://www.rockhursths.edu/file/QuickRoster/data/students.tsv
  */
 
 $(document).ready(function() {
@@ -305,6 +303,10 @@ $(document).ready(function() {
             log('finished parsing');
         };
 
+        var parseLifeTouchTSV = function(data) {
+            
+        };
+        
         // update the progress bar
         var updateProgress = function(i, len) {
             if(i === len - 1) {
@@ -368,5 +370,12 @@ $(document).ready(function() {
             log('fetching roster data');
             parseTSV(data);
         });
+        
+        if(lifeTouch) {
+            $.get('data/lifetouch.tsv', function(data) {
+                log('fetching lifetouch data');
+                parseLifeTouchTSV(data);
+            });
+        }
     }
 });
