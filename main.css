@@ -109,6 +109,10 @@ tr:nth-child(odd) {
   width: 33%;
 }
 
+#students img.lt {
+  width: 55px;
+}
+
 #students th, #students td {
   width: 25%;
 }
@@ -152,5 +156,4 @@ tr:nth-child(odd) {
   width: 100%;
   font-weight: bold;
 }
-
 
