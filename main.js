@@ -14,8 +14,12 @@ $(document).ready(function() {
     var progressBar = $('#progress-loading-files'); // the progress bar
     var finished = false;
     
-    var lifeTouch = false;
+    var lifeTouch = true;
     var lifeTouchFinished = false;
+    
+    var selectedCourse = null;
+    var selectedFaculty = null;
+    var selectedStudent = null;
     
     setTimeout(function() {
         if(!finished) {
@@ -97,11 +101,10 @@ $(document).ready(function() {
             log('a file is ready for download: ', csvFileName);
         };
 
-        // lists students after a teacher's course is clicked
-        window.listStudents = function(id) {
+        // returns a temp array of sorted student data
+        var tempSortStudents = function(id) {
             var course = courses[id];
-            var studentList = $('#students');
-            studentList.html('');
+            
             csvDownloadData = [];
             csvDownloadData.push('Last Name,First Name,Student ID,Email,Course');
 
@@ -123,6 +126,16 @@ $(document).ready(function() {
             
             tempStudents.sort(sortStudentsByLastName);
 
+            return tempStudents;
+        }
+
+        // lists students after a teacher's course is clicked
+        window.listStudents = function(id) {
+            var course = courses[id];
+            selectedCourse = course;
+            
+            var tempStudents = tempSortStudents(id);
+
             var html = '<tr>'
             
             if(lifeTouch) {
@@ -143,12 +156,57 @@ $(document).ready(function() {
                 html += '<td>' + student.lname + '</td><td>' + student.fname + '</td><td>' + student.id + '</td><td>' + student.email + '</td></tr>';
                 csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email + "," + course.id + " " + course.name);
             }
-            studentList.append(html);
+
             updateCSVDownloadLink(course);
+            
+            $('#students').html(html);
             $('#list-students').show();
             $('#list-courses').hide();
             $('#courseName').text(course.name + ", " + course.id);
         };
+        
+        var gridStudents = function(id) {
+            var course = courses[id];
+            selectedCourse = course;
+            
+            var tempStudents = tempSortStudents(id);
+            
+            var html = '';
+            
+            for(var i = 0; i < tempStudents.length; i += 3) {
+                
+                html += '<div class="flex">'
+                
+                var student = tempStudents[i];
+                html += '<div class="x1">' + student.fname + ' ' + student.lname + '</div>';
+                csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email + "," + course.id + " " + course.name);
+                
+                student = tempStudents[i + 1];
+                if(student) {
+                    html += '<div class="x1">' + student.fname + ' ' + student.lname + '</div>';
+                    csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email + "," + course.id + " " + course.name);
+                } else {
+                    html += '<div class="x1"></div>';
+                }
+                
+                student = tempStudents[i + 2];
+                if(student) {
+                    html += '<div class="x1">' + student.fname + ' ' + student.lname + '</div>';
+                    csvDownloadData.push(student.lname + "," + student.fname + "," + student.id + "," + student.email + "," + course.id + " " + course.name);
+                } else {
+                    html += '<div class="x1"></div>';
+                }
+                
+                html += '</div>'
+            }
+            
+            updateCSVDownloadLink(course);
+            
+            $('#students').html(html);
+            $('#list-students').show();
+            $('#list-courses').hide();
+            $('#courseName').text(course.name + ", " + course.id);
+        }
 
         // lists courses by teacher after search
         var listCourses = function(email) {
@@ -164,6 +222,8 @@ $(document).ready(function() {
                     }
                 }
             }
+            
+            selectedFaculty = teacher;
 
             log('teacher = ', teacher);
             log('courses = ', teacher.courses);
@@ -386,6 +446,9 @@ $(document).ready(function() {
             $('#list-courses').hide();
             $('#list-students').hide();
             $('#view-container').hide();
+            selectedCourse  = null;
+            selectedFaculty = null;
+            selectedStudent = null;
         };
 
         // filter search results
@@ -422,6 +485,26 @@ $(document).ready(function() {
         $('#btnBackToCourses').click(function() {
             $('#list-students').hide();
             $('#list-courses').show();
+        });
+        
+        $('#view-list').click(function() {
+            if(!$(this).hasClass('selected')) {
+                var key = courseMapKey(selectedCourse.name, selectedCourse.id, selectedCourse.term);
+                listStudents(key);
+                $('#view-grid').removeClass('selected');
+                $('#view-list').addClass('selected');
+                $('#view-container').show();
+            }
+        });
+        
+        $('#view-grid').click(function() {        
+            if(!$(this).hasClass('selected')) {
+                var key = courseMapKey(selectedCourse.name, selectedCourse.id, selectedCourse.term);
+                gridStudents(key);
+                $('#view-list').removeClass('selected');
+                $('#view-grid').addClass('selected');
+                $('#view-container').show();
+            }
         });
     
         // http request - get teacher data from tsv file

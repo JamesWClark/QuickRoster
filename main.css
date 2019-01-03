@@ -10,6 +10,11 @@ a.button {
   cursor: pointer;
   text-decoration: none;
   color: initial;
+  cursor: pointer;
+}
+
+a.button.selected {
+  background-color: #ccc;
 }
 
 table {
@@ -130,7 +135,7 @@ tr:nth-child(odd) {
 }
 
 #courseName {
-  margin-left: 17px;
+  margin-bottom: 17px;
   color: #888888;
   font-size: 1.5em;
   font-weight: bold;
@@ -157,3 +162,13 @@ tr:nth-child(odd) {
   font-weight: bold;
 }
 
+
+.view-icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: -7px;
+}
+
+.view-icon.selected {
+  background-color: aquamarine;
+}
