@@ -172,3 +172,7 @@ tr:nth-child(odd) {
 .view-icon.selected {
   background-color: aquamarine;
 }
+
+#view-options {
+  display: none;
+}

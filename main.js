@@ -14,7 +14,7 @@ $(document).ready(function() {
     var progressBar = $('#progress-loading-files'); // the progress bar
     var finished = false;
     
-    var lifeTouch = true;
+    var lifeTouch = false;
     var lifeTouchFinished = false;
     
     var selectedCourse = null;
@@ -293,7 +293,7 @@ $(document).ready(function() {
         // parse roster.tsv into data objects
         var parseTSV = function(data) {
             
-            data = data.split('\n');
+            data = data.trim().split('\n');
             
             log('parsing roster.tsv with ' + data.length + ' records');
             
