@@ -9,6 +9,8 @@
 
 $(document).ready(function() {
     
+    $.ajaxSetup({ cache: false }); // because the data is frequently updated - the cache is known to preserve old data requiring tech support to clear people's caches
+    
     // useless progress bar
     var progress = 0; // progress on the progress bar
     var progressBar = $('#progress-loading-files'); // the progress bar
@@ -240,6 +242,7 @@ $(document).ready(function() {
             // loop through the tsv file
             // burn headers, start at 1
             for(var i = 1; i < data.length; i++) { // from i = 1, ignores header row
+                if(data.length === 0) return;
                 var tsv = data[i].split('\t');
 
                 var idLength = 4;
