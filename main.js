@@ -250,7 +250,7 @@ $(document).ready(function() {
                 var teacher = {
                     fname: tsv[9],
                     lname: tsv[10],
-                    id:    tsv[12].length > idLength ? tsv[12].substring(tsv[12].length-idLength) : tsv[12],
+                    id:    tsv[12], /*.length > idLength ? tsv[12].substring(tsv[12].length-idLength) : tsv[12],*/
                     email: tsv[11].toLowerCase()
                 }
 
@@ -264,7 +264,7 @@ $(document).ready(function() {
                     fname: tsv[0],
                     lname: tsv[1],
                     grade: tsv[2],
-                    id:    tsv[3].length > idLength ? tsv[3].substring(tsv[3].length-idLength) : tsv[3],
+                    id:    tsv[3], /*.length > idLength ? tsv[3].substring(tsv[3].length-idLength) : tsv[3],*/
                     email: tsv[4].toLowerCase()
                 }
 
